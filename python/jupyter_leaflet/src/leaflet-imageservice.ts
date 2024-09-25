@@ -35,6 +35,7 @@ L.ImageService = L.Layer.extend({
     } else {
       this._url = this.options.url;
     }
+    console.log("inside updateUrl");
     this._bounds = this.toLatLngBounds(this._getBounds());
     this._topLeft = this._map.getPixelBounds().min;
     return this;
@@ -47,6 +48,7 @@ L.ImageService = L.Layer.extend({
       this._initImage();
     }
     this._map.on('moveend', () => {
+      console.log('moveend event');
       L.Util.throttle(this.update(), this.options.updateInterval, this);
     });
     if (this.options.interactive) {
@@ -257,8 +259,18 @@ L.ImageService = L.Layer.extend({
     this.updateUrl();
     // update image source
     if (this._image && this._map) {
+      //print a debug message with this is called
+      console.log('update called');
+
       this._image.src = this._url;
-      this._reset();
+      console.log('image source updated');
+      // delay this call until the image is loaded
+      this._image.onload = () => {
+        console.log('image loaded');
+        this._reset();
+      };
+      //this._reset();
+      //console.log('image reset');
     }
   },
 });
