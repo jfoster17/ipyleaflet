@@ -35,7 +35,6 @@ L.ImageService = L.Layer.extend({
     } else {
       this._url = this.options.url;
     }
-    //console.log("inside updateUrl");
     this._bounds = this.toLatLngBounds(this._getBounds());
     this._topLeft = this._map.getPixelBounds().min;
     return this;
@@ -48,7 +47,6 @@ L.ImageService = L.Layer.extend({
       this._initImage();
     }
     this._map.on('moveend', () => {
-      //console.log('moveend event');
       L.Util.throttle(this.update(), this.options.updateInterval, this);
     });
     if (this.options.interactive) {
@@ -250,7 +248,6 @@ L.ImageService = L.Layer.extend({
 
 
   _reset: function () {
-    //console.log('reset called');
     var image = this._image,
       bounds = new L.Bounds(
         this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
@@ -264,7 +261,6 @@ L.ImageService = L.Layer.extend({
   },
 
   update: function () {
-    //console.log('update called');
     if (!this._map) {
       return;
     }
@@ -276,13 +272,9 @@ L.ImageService = L.Layer.extend({
     this.updateUrl();
     // update image source
     if (this._image && this._map) {
-      //console.log('update called');
-
       this._image.src = this._url;
-      //console.log('image source updated');
       // delay reset until the new image is loaded
       this._image.onload = () => {
-        //console.log('image loaded');
         this._reset();
       };
     }
