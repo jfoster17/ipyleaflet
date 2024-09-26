@@ -96,11 +96,16 @@ L.ImageService = L.Layer.extend({
   },
 
 	getEvents: function () {
-		var events = {
-			zoom: this._reset,
-			viewreset: this._reset
-		};
+      var events = {
+        zoom: this._reset,
+        viewreset: this._reset,
+        zoomanim: false,
+      };
 
+      if (this._zoomAnimated) {
+        events.zoomanim = this._animateZoom;
+      }
+  
 		return events;
 	},
 
@@ -221,6 +226,11 @@ L.ImageService = L.Layer.extend({
     const wasElementSupplied = this._url.tagName === 'IMG';
     const img = (this._image = L.DomUtil.create('img'));
     L.DomUtil.addClass(img, 'leaflet-image-layer');
+
+		if (this._zoomAnimated) { L.DomUtil.addClass(img, 'leaflet-zoom-animated'); }
+		if (this.options.className) { L.DomUtil.addClass(img, this.options.className); }
+
+
     img.onselectstart = L.Util.falseFn;
     img.onmousemove = L.Util.falseFn;
     img.onload = L.Util.bind(this.fire, this, 'load');
@@ -230,6 +240,13 @@ L.ImageService = L.Layer.extend({
     }
     img.src = this._url;
   },
+
+  _animateZoom: function (e: { zoom: any; center: any; }) {
+		var scale = this._map.getZoomScale(e.zoom),
+		    offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
+
+		L.DomUtil.setTransform(this._image, offset, scale);
+	},
 
 
   _reset: function () {
