@@ -95,19 +95,19 @@ L.ImageService = L.Layer.extend({
     return this;
   },
 
-	getEvents: function () {
-      var events = {
-        zoom: this._reset,
-        viewreset: this._reset,
-        zoomanim: false,
-      };
+  getEvents: function () {
+    var events = {
+      zoom: this._reset,
+      viewreset: this._reset,
+      zoomanim: false,
+    };
 
-      if (this._zoomAnimated) {
-        events.zoomanim = this._animateZoom;
-      }
-  
-		return events;
-	},
+    if (this._zoomAnimated) {
+      events.zoomanim = this._animateZoom;
+    }
+
+    return events;
+  },
 
   getBounds: function () {
     // get bounds
@@ -227,8 +227,8 @@ L.ImageService = L.Layer.extend({
     const img = (this._image = L.DomUtil.create('img'));
     L.DomUtil.addClass(img, 'leaflet-image-layer');
 
-		if (this._zoomAnimated) { L.DomUtil.addClass(img, 'leaflet-zoom-animated'); }
-		if (this.options.className) { L.DomUtil.addClass(img, this.options.className); }
+    if (this._zoomAnimated) { L.DomUtil.addClass(img, 'leaflet-zoom-animated'); }
+    if (this.options.className) { L.DomUtil.addClass(img, this.options.className); }
 
 
     img.onselectstart = L.Util.falseFn;
@@ -242,26 +242,26 @@ L.ImageService = L.Layer.extend({
   },
 
   _animateZoom: function (e: { zoom: any; center: any; }) {
-		var scale = this._map.getZoomScale(e.zoom),
-		    offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
+    var scale = this._map.getZoomScale(e.zoom),
+      offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
 
-		L.DomUtil.setTransform(this._image, offset, scale);
-	},
+    L.DomUtil.setTransform(this._image, offset, scale);
+  },
 
 
   _reset: function () {
     //console.log('reset called');
-		var image = this._image,
-    bounds = new L.Bounds(
+    var image = this._image,
+      bounds = new L.Bounds(
         this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
         this._map.latLngToLayerPoint(this._bounds.getSouthEast())),
-    size = bounds.getSize();
+      size = bounds.getSize();
 
     L.DomUtil.setPosition(image, bounds.min ?? new Point(0, 0));
 
-		image.style.width  = size.x + 'px';
-		image.style.height = size.y + 'px';
-	},
+    image.style.width = size.x + 'px';
+    image.style.height = size.y + 'px';
+  },
 
   update: function () {
     //console.log('update called');
