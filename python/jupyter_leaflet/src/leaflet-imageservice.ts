@@ -35,7 +35,7 @@ L.ImageService = L.Layer.extend({
     } else {
       this._url = this.options.url;
     }
-    console.log("inside updateUrl");
+    //console.log("inside updateUrl");
     this._bounds = this.toLatLngBounds(this._getBounds());
     this._topLeft = this._map.getPixelBounds().min;
     return this;
@@ -48,7 +48,7 @@ L.ImageService = L.Layer.extend({
       this._initImage();
     }
     this._map.on('moveend', () => {
-      console.log('moveend event');
+      //console.log('moveend event');
       L.Util.throttle(this.update(), this.options.updateInterval, this);
     });
     if (this.options.interactive) {
@@ -95,13 +95,14 @@ L.ImageService = L.Layer.extend({
     return this;
   },
 
-  getEvents: function () {
-    const events = {
-      zoom: this._reset,
-      viewreset: this._reset,
-    };
-    return events;
-  },
+	getEvents: function () {
+		var events = {
+			zoom: this._reset,
+			viewreset: this._reset
+		};
+
+		return events;
+	},
 
   getBounds: function () {
     // get bounds
@@ -230,24 +231,23 @@ L.ImageService = L.Layer.extend({
     img.src = this._url;
   },
 
+
   _reset: function () {
-    const img = this._image;
-    const size = this._getSize();
-    img.style.width = size[0] + 'px';
-    img.style.height = size[1] + 'px';
-    if (this._getEPSG() === 3857) {
-      const bounds = new L.Bounds(
+    //console.log('reset called');
+		var image = this._image,
+    bounds = new L.Bounds(
         this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
-        this._map.latLngToLayerPoint(this._bounds.getSouthEast())
-      );
-      L.DomUtil.setPosition(img, bounds.min ?? new Point(0, 0));
-    } else {
-      const pixelorigin = this._topLeft.subtract(this._map.getPixelOrigin());
-      L.DomUtil.setPosition(img, pixelorigin);
-    }
-  },
+        this._map.latLngToLayerPoint(this._bounds.getSouthEast())),
+    size = bounds.getSize();
+
+    L.DomUtil.setPosition(image, bounds.min ?? new Point(0, 0));
+
+		image.style.width  = size.x + 'px';
+		image.style.height = size.y + 'px';
+	},
 
   update: function () {
+    //console.log('update called');
     if (!this._map) {
       return;
     }
@@ -259,18 +259,15 @@ L.ImageService = L.Layer.extend({
     this.updateUrl();
     // update image source
     if (this._image && this._map) {
-      //print a debug message with this is called
-      console.log('update called');
+      //console.log('update called');
 
       this._image.src = this._url;
-      console.log('image source updated');
-      // delay this call until the image is loaded
+      //console.log('image source updated');
+      // delay reset until the new image is loaded
       this._image.onload = () => {
-        console.log('image loaded');
+        //console.log('image loaded');
         this._reset();
       };
-      //this._reset();
-      //console.log('image reset');
     }
   },
 });
