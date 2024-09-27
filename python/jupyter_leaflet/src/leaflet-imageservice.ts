@@ -1,7 +1,18 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import L, { ImageServiceOptions, Map, Point } from 'leaflet';
+import L, { ImageServiceOptions, Map, Point, } from 'leaflet';
+
+
+// @function setOpacityActual(el: HTMLElement, opacity: Number)
+// Set the opacity of an element.
+// `opacity` must be a number from `0` to `1`.
+function setOpacityActual(el: HTMLElement, value: Number) {
+  if ('opacity' in el.style) {
+    el.style.opacity = value.toString();
+  }
+}
+
 
 L.ImageService = L.Layer.extend({
   options: {
@@ -22,6 +33,7 @@ L.ImageService = L.Layer.extend({
     crs: null,
     interactive: false,
     updateInterval: 200,
+    opacity: 1,
   },
 
   initialize: function (options: ImageServiceOptions) {
@@ -45,6 +57,11 @@ L.ImageService = L.Layer.extend({
     this.updateUrl();
     if (!this._image) {
       this._initImage();
+
+      if (this.options.opacity < 1) {
+        this._updateOpacity();
+      }
+
     }
     this._map.on('moveend', () => {
       L.Util.throttle(this.update(), this.options.updateInterval, this);
@@ -63,6 +80,25 @@ L.ImageService = L.Layer.extend({
       this.removeInteractiveTarget(this._image);
     }
   },
+
+  // @method setOpacity(opacity: Number): this
+  // Sets the opacity of the overlay.
+  setOpacity: function (opacity: Number) {
+    this.options.opacity = opacity;
+
+    if (this._image) {
+      this._updateOpacity();
+    }
+    return this;
+  },
+
+  //  setStyle: function (styleOpts) {
+  //    if (styleOpts.opacity) {
+  //      this.setOpacity(styleOpts.opacity);
+  //    }
+  //    return this;
+  //  },
+
 
   bringToFront: function () {
     // bring layer to the top of all overlays
@@ -258,6 +294,12 @@ L.ImageService = L.Layer.extend({
 
     image.style.width = size.x + 'px';
     image.style.height = size.y + 'px';
+
+    this._updateOpacity();
+  },
+
+  _updateOpacity: function () {
+    setOpacityActual(this._image, this.options.opacity);
   },
 
   update: function () {

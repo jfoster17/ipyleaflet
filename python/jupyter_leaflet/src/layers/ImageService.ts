@@ -29,6 +29,7 @@ export class LeafletImageServiceModel extends LeafletLayerModel {
       crs: null,
       interactive: false,
       updateInterval: 200,
+      opacity: 1,
     };
   }
 }
@@ -47,6 +48,7 @@ export class LeafletImageServiceView extends LeafletLayerView {
 
   model_events() {
     super.model_events();
+
     this.model.on('change:url', () => {
       this.obj.update();
     });

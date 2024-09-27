@@ -973,6 +973,7 @@ class ImageService(Layer):
         emit when clicked for registered callback
     update_interval: int, default 200
         minimum time interval to query for updates when panning (ms)
+    opacity: float, default 1.0
     """
 
     _view_name = Unicode("LeafletImageServiceView").tag(sync=True)
@@ -1037,7 +1038,8 @@ class ImageService(Layer):
     crs = Dict(default_value=projections.EPSG3857).tag(sync=True)
     interactive = Bool(False).tag(sync=True, o=True)
     update_interval = Int(200).tag(sync=True, o=True)
-
+    opacity = Float(1.0).tag(sync=True, o=True)
+    
     _click_callbacks = Instance(CallbackDispatcher, ())
 
     def __init__(self, **kwargs):
