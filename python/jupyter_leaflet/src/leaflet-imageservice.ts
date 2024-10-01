@@ -258,7 +258,10 @@ L.ImageService = L.Layer.extend({
     // update image source
     if (this._image && this._map) {
       this._image.src = this._url;
-      this._reset();
+      // delay reset until the new image is loaded
+      this._image.onload = () => {
+        this._reset();
+      };
     }
   },
 });
