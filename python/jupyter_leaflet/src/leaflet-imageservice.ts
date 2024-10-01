@@ -97,7 +97,12 @@ L.ImageService = L.Layer.extend({
     const events = {
       zoom: this._reset,
       viewreset: this._reset,
+      zoomanim: false,
     };
+
+    if (this._zoomAnimated) {
+      events.zoomanim = this._animateZoom;
+    }
     return events;
   },
 
@@ -218,6 +223,8 @@ L.ImageService = L.Layer.extend({
     const wasElementSupplied = this._url.tagName === 'IMG';
     const img = (this._image = L.DomUtil.create('img'));
     L.DomUtil.addClass(img, 'leaflet-image-layer');
+    if (this._zoomAnimated) { L.DomUtil.addClass(img, 'leaflet-zoom-animated'); }
+    if (this.options.className) { L.DomUtil.addClass(img, this.options.className); }
     img.onselectstart = L.Util.falseFn;
     img.onmousemove = L.Util.falseFn;
     img.onload = L.Util.bind(this.fire, this, 'load');
@@ -228,17 +235,24 @@ L.ImageService = L.Layer.extend({
     img.src = this._url;
   },
 
+  _animateZoom: function (e: { zoom: any; center: any; }) {
+    var scale = this._map.getZoomScale(e.zoom),
+      offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
+
+    L.DomUtil.setTransform(this._image, offset, scale);
+  },
+
   _reset: function () {
     const img = this._image;
-    const size = this._getSize();
-    img.style.width = size[0] + 'px';
-    img.style.height = size[1] + 'px';
     if (this._getEPSG() === 3857) {
       const bounds = new L.Bounds(
         this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
         this._map.latLngToLayerPoint(this._bounds.getSouthEast())
       );
+      var size = bounds.getSize();
       L.DomUtil.setPosition(img, bounds.min ?? new Point(0, 0));
+      img.style.width = size.x + 'px';
+      img.style.height = size.y + 'px';
     } else {
       const pixelorigin = this._topLeft.subtract(this._map.getPixelOrigin());
       L.DomUtil.setPosition(img, pixelorigin);
