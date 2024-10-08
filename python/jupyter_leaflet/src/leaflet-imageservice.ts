@@ -29,15 +29,17 @@ L.ImageService = L.Layer.extend({
   },
 
   updateUrl: function () {
+    console.log("inside updateUrl");
     // update the url for the current bounds
     if (this.options.endpoint === 'Esri') {
       this._url = this.options.url + '/exportImage' + this._buildParams();
     } else {
       this._url = this.options.url;
     }
-    //console.log("inside updateUrl");
+
     this._bounds = this.toLatLngBounds(this._getBounds());
     this._topLeft = this._map.getPixelBounds().min;
+
     return this;
   },
 
@@ -48,7 +50,7 @@ L.ImageService = L.Layer.extend({
       this._initImage();
     }
     this._map.on('moveend', () => {
-      //console.log('moveend event');
+      console.log('moveend event');
       L.Util.throttle(this.update(), this.options.updateInterval, this);
     });
     if (this.options.interactive) {
@@ -92,22 +94,24 @@ L.ImageService = L.Layer.extend({
     if (this._image) {
       this._image.src = url;
     }
+
+
     return this;
   },
 
-	getEvents: function () {
-      var events = {
-        zoom: this._reset,
-        viewreset: this._reset,
-        zoomanim: false,
-      };
+  getEvents: function () {
+    var events = {
+      zoom: this._reset,
+      viewreset: this._reset,
+      zoomanim: false,
+    };
 
-      if (this._zoomAnimated) {
-        events.zoomanim = this._animateZoom;
-      }
-  
-		return events;
-	},
+    if (this._zoomAnimated) {
+      events.zoomanim = this._animateZoom;
+    }
+
+    return events;
+  },
 
   getBounds: function () {
     // get bounds
@@ -227,8 +231,8 @@ L.ImageService = L.Layer.extend({
     const img = (this._image = L.DomUtil.create('img'));
     L.DomUtil.addClass(img, 'leaflet-image-layer');
 
-		if (this._zoomAnimated) { L.DomUtil.addClass(img, 'leaflet-zoom-animated'); }
-		if (this.options.className) { L.DomUtil.addClass(img, this.options.className); }
+    if (this._zoomAnimated) { L.DomUtil.addClass(img, 'leaflet-zoom-animated'); }
+    if (this.options.className) { L.DomUtil.addClass(img, this.options.className); }
 
 
     img.onselectstart = L.Util.falseFn;
@@ -239,32 +243,61 @@ L.ImageService = L.Layer.extend({
       return;
     }
     img.src = this._url;
+
+    //get current zoom level
+    this._zoom = this._map.getZoom();
+    //get current map center
+    this._center = this.getCenter();
+
+    this._old_scale = this._map.getZoomScale(this._zoom);
+    this._old_offset = new Point(0, 0);
   },
 
   _animateZoom: function (e: { zoom: any; center: any; }) {
-		var scale = this._map.getZoomScale(e.zoom),
-		    offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
+    console.log('animateZoom called');
+    var new_scale = this._map.getZoomScale(e.zoom),
+      new_offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
+    console.log('new_scale:', new_scale);
+    console.log('new_offset:', new_offset);
 
-		L.DomUtil.setTransform(this._image, offset, scale);
-	},
+    var scale = this._old_scale * new_scale;
+    var offset = new_offset.add(this._old_offset);
+    console.log('scale:', scale);
+    console.log('offset:', offset);
+    // print image size
+    //console.log('image size:', this._image.style.width, this._image.style.height);
+    L.DomUtil.setTransform(this._image, offset, scale);
+    console.log('image transformed');
+    this._old_scale = scale;
+    this._old_offset = offset;
+  },
 
 
   _reset: function () {
-    //console.log('reset called');
-		var image = this._image,
-    bounds = new L.Bounds(
+    console.log('reset called');
+    var image = this._image,
+      bounds = new L.Bounds(
         this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
         this._map.latLngToLayerPoint(this._bounds.getSouthEast())),
-    size = bounds.getSize();
-
+      size = bounds.getSize();
+    console.log('bounds:', bounds);
     L.DomUtil.setPosition(image, bounds.min ?? new Point(0, 0));
 
-		image.style.width  = size.x + 'px';
-		image.style.height = size.y + 'px';
-	},
+    image.style.width = size.x + 'px';
+    image.style.height = size.y + 'px';
+
+    //get current zoom level
+    this._zoom = this._map.getZoom();
+    //get current map center
+    this._center = this.getCenter();
+
+    this._old_scale = this._map.getZoomScale(this._zoom);
+    this._old_offset = new Point(0, 0);
+
+  },
 
   update: function () {
-    //console.log('update called');
+    console.log('update called');
     if (!this._map) {
       return;
     }
@@ -272,17 +305,18 @@ L.ImageService = L.Layer.extend({
     if (this._map._panTransition && this._map._panTransition._inProgress) {
       return;
     }
+
     // update the url for the current bounds
     this.updateUrl();
     // update image source
     if (this._image && this._map) {
-      //console.log('update called');
 
       this._image.src = this._url;
-      //console.log('image source updated');
+      console.log('image source updated');
       // delay reset until the new image is loaded
       this._image.onload = () => {
-        //console.log('image loaded');
+        console.log('image loaded');
+
         this._reset();
       };
     }
